@@ -101,7 +101,14 @@ function getPriorityColor(p: string) {
 }
 
 function getLabelColor(label: string) {
-  const map: Record<string, string> = { Design: "#A78BFA", Engineering: "#6C5CE7", AI: "#00D68F", Marketing: "#FFB800", Docs: "#FF5C5C" };
+  // We define the type as Record<string, string> to allow any string to be used as a key
+  const map: Record<string, string> = { 
+    Design: "#A78BFA", 
+    Engineering: "#6C5CE7", 
+    AI: "#00D68F", 
+    Marketing: "#FFB800", 
+    Docs: "#FF5C5C" 
+  };
   return map[label] || "#6C5CE7";
 }
 
