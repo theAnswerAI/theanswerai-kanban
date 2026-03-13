@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from "react";
 
@@ -95,11 +96,12 @@ const AI_ENRICHMENTS = [
 
 // ─── Utility ─────────────────────────────────────────────────────────────────
 function getPriorityColor(p: string) {
-  return { urgent: tokens.priorityUrgent, high: tokens.priorityHigh, medium: tokens.priorityMedium, low: tokens.priorityLow }[p] || tokens.priorityMedium;
+  const map: Record<string, string> = { urgent: tokens.priorityUrgent, high: tokens.priorityHigh, medium: tokens.priorityMedium, low: tokens.priorityLow };
+  return map[p] || tokens.priorityMedium;
 }
 
 function getLabelColor(label: string) {
-  const map = { Design: "#A78BFA", Engineering: "#6C5CE7", AI: "#00D68F", Marketing: "#FFB800", Docs: "#FF5C5C" };
+  const map: Record<string, string> = { Design: "#A78BFA", Engineering: "#6C5CE7", AI: "#00D68F", Marketing: "#FFB800", Docs: "#FF5C5C" };
   return map[label] || "#6C5CE7";
 }
 
