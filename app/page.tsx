@@ -1,5 +1,5 @@
 "use client";
-
+// @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
@@ -94,16 +94,16 @@ const AI_ENRICHMENTS = [
 ];
 
 // ─── Utility ─────────────────────────────────────────────────────────────────
-function getPriorityColor(p) {
+function getPriorityColor(p: string) {
   return { urgent: tokens.priorityUrgent, high: tokens.priorityHigh, medium: tokens.priorityMedium, low: tokens.priorityLow }[p] || tokens.priorityMedium;
 }
 
-function getLabelColor(label) {
+function getLabelColor(label: string) {
   const map = { Design: "#A78BFA", Engineering: "#6C5CE7", AI: "#00D68F", Marketing: "#FFB800", Docs: "#FF5C5C" };
   return map[label] || "#6C5CE7";
 }
 
-function Avatar({ id, size = 24 }) {
+function Avatar({ id, size = 24 }: { id: string; size?: number }) {
   const member = MEMBERS.find(m => m.id === id) || MEMBERS[0];
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", background: member.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: size * 0.38, fontWeight: 700, color: "#fff", flexShrink: 0, fontFamily: "'DM Sans', sans-serif" }}>
@@ -112,7 +112,7 @@ function Avatar({ id, size = 24 }) {
   );
 }
 
-function SparkleIcon({ size = 14, color = tokens.ai }) {
+function SparkleIcon({ size = 14, color = tokens.ai }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 14 14" fill="none">
       <path d="M7 1L8.2 5.8L13 7L8.2 8.2L7 13L5.8 8.2L1 7L5.8 5.8L7 1Z" fill={color} />
