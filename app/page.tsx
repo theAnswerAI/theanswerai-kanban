@@ -1,6 +1,6 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // @ts-nocheck
+
 import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Design Tokens ───────────────────────────────────────────────────────────
