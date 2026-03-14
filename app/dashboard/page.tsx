@@ -530,7 +530,12 @@ if (boardsData.length > 3) {
     setLoading(false);
   }, [activeBoardId, addNotif]);
 
-// Read user context from onboarding
+
+
+  // ── Seed default boards on first run ────────────────────────────────────
+  const seedDefaultBoard = async () => {
+
+    // Read user context from onboarding
 const { data: ctx } = await supabase
   .from("user_context")
   .select("*")
@@ -542,9 +547,6 @@ const userName = ctx?.name || "You";
 const userIndustry = ctx?.industry || "General";
 const userFocus = ctx?.current_focus || "My Project";
 const userRole = ctx?.role || "Manager";
-
-  // ── Seed default boards on first run ────────────────────────────────────
-  const seedDefaultBoard = async () => {
     // ── Board 1: Product Launch ──────────────────────────────────────────
     const { data: board1 } = await supabase
       .from("boards")
