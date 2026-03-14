@@ -492,10 +492,17 @@ export default function App() {
     if (error) { addNotif("Failed to load boards", "error"); setLoading(false); return; }
 
     if (!boardsData || boardsData.length === 0) {
-      // First run — seed with a default board
-      await seedDefaultBoard();
-      return;
-    }
+  await seedDefaultBoard();
+  return;
+}
+
+if (boardsData.length > 3) {
+  // Remove duplicates — keep only the 3 most recent boards
+  const toDelete = boardsData.slice(3);
+  for (const b of toDelete) {
+    await supabase.from("boards").delete().eq("id", b.id);
+  }
+}
 
     const boardsWithLists = await Promise.all(boardsData.map(async board => {
       const { data: lists } = await supabase
@@ -523,12 +530,25 @@ export default function App() {
     setLoading(false);
   }, [activeBoardId, addNotif]);
 
+// Read user context from onboarding
+const { data: ctx } = await supabase
+  .from("user_context")
+  .select("*")
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .single();
+
+const userName = ctx?.name || "You";
+const userIndustry = ctx?.industry || "General";
+const userFocus = ctx?.current_focus || "My Project";
+const userRole = ctx?.role || "Manager";
+
   // ── Seed default boards on first run ────────────────────────────────────
   const seedDefaultBoard = async () => {
     // ── Board 1: Product Launch ──────────────────────────────────────────
     const { data: board1 } = await supabase
       .from("boards")
-      .insert({ title: "Product Launch", color: "#6C5CE7" })
+      .insert({ title:  userFocus.slice(0, 40), color: "#6C5CE7" })
       .select().single();
 
     if (!board1) { setLoading(false); return; }
@@ -537,7 +557,7 @@ export default function App() {
       {
         title: "Backlog",
         cards: [
-          { title: "Design onboarding flow", priority: "high", assignee: "AR", labels: ["Design"], estimated_hours: 4, ai_enriched: true, ai_description: "Create a seamless 2-step onboarding that delivers AI value before the user reaches their first board. Focus on reducing time-to-first-AI-action.", subtasks: ["Sketch user flow", "Design step 1 screen", "Design step 2 screen", "Add progress indicator"], due_date: "Mar 20" },
+          { title: "Design onboarding flow", priority: "high", assignee: ctx?.name?.slice(0,2).toUpperCase() || "AR", labels: ["Design"], estimated_hours: 4, ai_enriched: true, ai_description: "Create a seamless 2-step onboarding that delivers AI value before the user reaches their first board. Focus on reducing time-to-first-AI-action.", subtasks: ["Sketch user flow", "Design step 1 screen", "Design step 2 screen", "Add progress indicator"], due_date: "Mar 20" },
           { title: "Write API documentation", priority: "medium", assignee: "JL", labels: ["Docs"], estimated_hours: 3, ai_enriched: false, due_date: "Mar 25" },
           { title: "SEO keyword research", priority: "low", assignee: "TK", labels: ["Marketing"], estimated_hours: 2, ai_enriched: true, ai_description: "Identify high-intent keywords in the project management space, focusing on Trello alternative and AI kanban clusters.", subtasks: ["Competitor analysis", "Keyword gap analysis", "Content calendar draft"], due_date: "Mar 28" },
         ]
