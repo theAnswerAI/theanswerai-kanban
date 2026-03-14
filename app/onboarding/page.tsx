@@ -319,9 +319,8 @@ export default function Page() {
 
   const handleFinish = async () => {
     setSaving(true);
-    setScreen("generating");
 
-    await supabase.from("user_context").insert({
+const { error } = await supabase.from("user_context").insert({
       name: form.name,
       industry: form.industry,
       role: form.role,
@@ -336,7 +335,14 @@ export default function Page() {
       approval_required: form.approval_required,
     });
 
-    // Simulate brief AI setup moment
+    if (error) {
+      console.error("Insert failed:", error.message);
+      alert("Setup failed: " + error.message);
+      setSaving(false);
+      return;
+    }
+
+    setScreen("generating");
     await new Promise(r => setTimeout(r, 2800));
     router.push("/dashboard");
   };
