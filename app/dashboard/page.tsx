@@ -523,33 +523,169 @@ export default function App() {
     setLoading(false);
   }, [activeBoardId, addNotif]);
 
-  // ── Seed default board on first run ─────────────────────────────────────
+  // ── Seed default boards on first run ────────────────────────────────────
   const seedDefaultBoard = async () => {
-    const { data: board } = await supabase
+    // ── Board 1: Product Launch ──────────────────────────────────────────
+    const { data: board1 } = await supabase
       .from("boards")
       .insert({ title: "Product Launch", color: "#6C5CE7" })
       .select().single();
 
-    if (!board) { setLoading(false); return; }
+    if (!board1) { setLoading(false); return; }
 
-    const listTitles = ["Backlog", "In Progress", "Review", "Done"];
-    for (let i = 0; i < listTitles.length; i++) {
+    const board1Lists = [
+      {
+        title: "Backlog",
+        cards: [
+          { title: "Design onboarding flow", priority: "high", assignee: "AR", labels: ["Design"], estimated_hours: 4, ai_enriched: true, ai_description: "Create a seamless 2-step onboarding that delivers AI value before the user reaches their first board. Focus on reducing time-to-first-AI-action.", subtasks: ["Sketch user flow", "Design step 1 screen", "Design step 2 screen", "Add progress indicator"], due_date: "Mar 20" },
+          { title: "Write API documentation", priority: "medium", assignee: "JL", labels: ["Docs"], estimated_hours: 3, ai_enriched: false, due_date: "Mar 25" },
+          { title: "SEO keyword research", priority: "low", assignee: "TK", labels: ["Marketing"], estimated_hours: 2, ai_enriched: true, ai_description: "Identify high-intent keywords in the project management space, focusing on Trello alternative and AI kanban clusters.", subtasks: ["Competitor analysis", "Keyword gap analysis", "Content calendar draft"], due_date: "Mar 28" },
+        ]
+      },
+      {
+        title: "In Progress",
+        cards: [
+          { title: "Build AI card enrichment", priority: "urgent", assignee: "AR", labels: ["Engineering", "AI"], estimated_hours: 8, ai_enriched: true, ai_description: "Implement async Gemini API integration for card enrichment. Must not block the UI. Return description, subtasks, priority, and time estimate.", subtasks: ["Gemini API client", "Queue system", "JSON validation", "Error fallbacks", "UI loading states"], due_date: "Mar 15" },
+          { title: "Stripe billing integration", priority: "high", assignee: "JL", labels: ["Engineering"], estimated_hours: 6, ai_enriched: false, due_date: "Mar 18" },
+        ]
+      },
+      {
+        title: "Review",
+        cards: [
+          { title: "Landing page copy", priority: "medium", assignee: "TK", labels: ["Marketing", "Design"], estimated_hours: 3, ai_enriched: true, ai_description: "Craft conversion-focused copy that leads with the board that runs itself positioning. Hero, features, social proof, and pricing sections.", subtasks: ["Hero headline variants", "Feature descriptions", "CTA optimization"], due_date: "Mar 14" },
+        ]
+      },
+      {
+        title: "Done",
+        cards: [
+          { title: "Database schema design", priority: "high", assignee: "AR", labels: ["Engineering"], estimated_hours: 5, ai_enriched: true, ai_description: "Design PostgreSQL schema with fractional indexing for card positions, supporting real-time collaboration without conflicts.", subtasks: ["ERD diagram", "Write migrations", "Add indexes", "Performance test"], due_date: "Mar 10" },
+          { title: "Brand identity system", priority: "medium", assignee: "TK", labels: ["Design"], estimated_hours: 12, ai_enriched: false, due_date: "Mar 8" },
+        ]
+      },
+    ];
+
+    for (let i = 0; i < board1Lists.length; i++) {
+      const listData = board1Lists[i];
       const { data: list } = await supabase
         .from("lists")
-        .insert({ board_id: board.id, title: listTitles[i], position: (i + 1) * 1000 })
+        .insert({ board_id: board1.id, title: listData.title, position: (i + 1) * 1000 })
         .select().single();
-
-      if (list && i === 0) {
-        // Add a sample card
+      if (!list) continue;
+      for (let j = 0; j < listData.cards.length; j++) {
+        const card = listData.cards[j];
         await supabase.from("cards").insert({
           list_id: list.id,
-          title: "Welcome to theAnswerAI Kanban ✦",
-          priority: "high",
-          assignee: "AR",
-          labels: ["Design"],
-          position: 1000,
-          estimated_hours: 1,
+          title: card.title,
+          priority: card.priority,
+          assignee: card.assignee,
+          labels: card.labels || [],
+          estimated_hours: card.estimated_hours || 0,
+          ai_enriched: card.ai_enriched || false,
+          ai_description: card.ai_description || null,
+          subtasks: card.subtasks || [],
+          due_date: card.due_date || null,
+          position: (j + 1) * 1000,
         });
+      }
+    }
+
+    // ── Board 2: Marketing Sprint ────────────────────────────────────────
+    const { data: board2 } = await supabase
+      .from("boards")
+      .insert({ title: "Marketing Sprint", color: "#00D68F" })
+      .select().single();
+
+    if (board2) {
+      const board2Lists = [
+        {
+          title: "Ideas",
+          cards: [
+            { title: "Product Hunt launch prep", priority: "high", assignee: "TK", labels: ["Marketing"], estimated_hours: 6, ai_enriched: true, ai_description: "Coordinate all assets, copy, and community outreach needed for a top-ranked Product Hunt launch. Timing and upvote momentum are critical.", subtasks: ["Write PH description", "Prepare launch assets", "Line up hunter", "Schedule maker comment"], due_date: "Apr 1" },
+            { title: "Influencer outreach strategy", priority: "medium", assignee: "TK", labels: ["Marketing"], estimated_hours: 4, ai_enriched: false, due_date: "Apr 5" },
+          ]
+        },
+        { title: "In Progress", cards: [
+          { title: "Q2 content calendar", priority: "high", assignee: "TK", labels: ["Marketing", "Design"], estimated_hours: 5, ai_enriched: true, ai_description: "Build a 13-week content calendar covering blog, social, and email channels. Align with product launch milestones and seasonal opportunities.", subtasks: ["Audit Q1 performance", "Define content pillars", "Map to product roadmap", "Assign to creators"], due_date: "Apr 3" },
+        ]},
+        { title: "Done", cards: [] },
+      ];
+
+      for (let i = 0; i < board2Lists.length; i++) {
+        const listData = board2Lists[i];
+        const { data: list } = await supabase
+          .from("lists")
+          .insert({ board_id: board2.id, title: listData.title, position: (i + 1) * 1000 })
+          .select().single();
+        if (!list) continue;
+        for (let j = 0; j < listData.cards.length; j++) {
+          const card = listData.cards[j];
+          await supabase.from("cards").insert({
+            list_id: list.id,
+            title: card.title,
+            priority: card.priority,
+            assignee: card.assignee,
+            labels: card.labels || [],
+            estimated_hours: card.estimated_hours || 0,
+            ai_enriched: card.ai_enriched || false,
+            ai_description: card.ai_description || null,
+            subtasks: card.subtasks || [],
+            due_date: card.due_date || null,
+            position: (j + 1) * 1000,
+          });
+        }
+      }
+    }
+
+    // ── Board 3: Concert Production ──────────────────────────────────────
+    const { data: board3 } = await supabase
+      .from("boards")
+      .insert({ title: "Concert Production", color: "#FFB800" })
+      .select().single();
+
+    if (board3) {
+      const board3Lists = [
+        {
+          title: "Pre-Production",
+          cards: [
+            { title: "Advance main stage with production manager", priority: "urgent", assignee: "AR", labels: ["Production", "Staging"], estimated_hours: 8, ai_enriched: true, ai_description: "Coordinate all technical riders and stage specs with the touring production manager. Confirm power drops, ground support, rigging points, and backline requirements before load-in.", subtasks: ["Review technical rider", "Confirm rigging points and weight loads", "Coordinate power distribution with venue electrician", "Approve stage plot and input list"], due_date: "Mar 20" },
+            { title: "Confirm FOH and monitor engineer", priority: "high", assignee: "JL", labels: ["Audio"], estimated_hours: 3, ai_enriched: false, due_date: "Mar 18" },
+          ]
+        },
+        {
+          title: "Load-In",
+          cards: [
+            { title: "Stage lighting plot programming", priority: "high", assignee: "TK", labels: ["Lighting"], estimated_hours: 12, ai_enriched: true, ai_description: "Program the full lighting plot into the console based on the LD design file. Pre-viz all cues before the production rehearsal to maximize limited programming time on stage.", subtasks: ["Import fixture patch", "Build scene library", "Program show cues", "Pre-viz run-through with LD"], due_date: "Mar 21" },
+          ]
+        },
+        { title: "Show Day", cards: [
+          { title: "Soundcheck and line check", priority: "urgent", assignee: "AR", labels: ["Audio", "Production"], estimated_hours: 4, ai_enriched: false, due_date: "Mar 22" },
+        ]},
+        { title: "Wrapped", cards: [] },
+      ];
+
+      for (let i = 0; i < board3Lists.length; i++) {
+        const listData = board3Lists[i];
+        const { data: list } = await supabase
+          .from("lists")
+          .insert({ board_id: board3.id, title: listData.title, position: (i + 1) * 1000 })
+          .select().single();
+        if (!list) continue;
+        for (let j = 0; j < listData.cards.length; j++) {
+          const card = listData.cards[j];
+          await supabase.from("cards").insert({
+            list_id: list.id,
+            title: card.title,
+            priority: card.priority,
+            assignee: card.assignee,
+            labels: card.labels || [],
+            estimated_hours: card.estimated_hours || 0,
+            ai_enriched: card.ai_enriched || false,
+            ai_description: card.ai_description || null,
+            subtasks: card.subtasks || [],
+            due_date: card.due_date || null,
+            position: (j + 1) * 1000,
+          });
+        }
       }
     }
 
