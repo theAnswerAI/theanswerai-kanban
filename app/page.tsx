@@ -9,7 +9,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-
 // ─── Design Tokens ────────────────────────────────────────────────────────────
 const tokens = {
   bg: "#0E0E11",
@@ -601,21 +600,39 @@ export default function App() {
     if (selectedCard?.id === cardId) setSelectedCard(prev => ({ ...prev, ...updates }));
   }, [selectedCard, addNotif]);
 
-  // ── AI Enrich ────────────────────────────────────────────────────────────
+  // ── AI Enrich (Gemini) ───────────────────────────────────────────────────
   const handleEnrichAI = useCallback(async (cardId) => {
     setEnriching(true);
-    await new Promise(r => setTimeout(r, 1400));
-    const enrichment = AI_ENRICHMENTS[Math.floor(Math.random() * AI_ENRICHMENTS.length)];
-    await handleCardUpdate(cardId, {
-      ai_enriched: true,
-      ai_description: enrichment.description,
-      subtasks: enrichment.subtasks,
-      estimated_hours: enrichment.estimated_hours,
-      priority: enrichment.priority,
-    });
-    setEnriching(false);
-    addNotif("✦ AI enrichment complete — description & subtasks added.");
-  }, [handleCardUpdate, addNotif]);
+    let cardTitle = "";
+    let listName = "";
+    const boardName = activeBoard?.title || "My Board";
+    for (const list of activeBoard?.lists || []) {
+      const found = list.cards?.find(c => c.id === cardId);
+      if (found) { cardTitle = found.title; listName = list.title; break; }
+    }
+    try {
+      const res = await fetch("/api/enrich", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: cardTitle, listName, boardName }),
+      });
+      if (!res.ok) throw new Error("API error");
+      const enrichment = await res.json();
+      await handleCardUpdate(cardId, {
+        ai_enriched: true,
+        ai_description: enrichment.description,
+        subtasks: enrichment.subtasks,
+        estimated_hours: enrichment.estimated_hours,
+        priority: enrichment.priority,
+        labels: enrichment.labels?.length ? enrichment.labels : undefined,
+      });
+      addNotif("✦ Gemini enrichment complete — description & subtasks added.");
+    } catch (err) {
+      addNotif("AI enrichment failed — check your Gemini API key.", "error");
+    } finally {
+      setEnriching(false);
+    }
+  }, [handleCardUpdate, addNotif, activeBoard]);
 
   // ── Drag and drop ────────────────────────────────────────────────────────
   const handleDragStart = useCallback((e, cardId, listId) => {
