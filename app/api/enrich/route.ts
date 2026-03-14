@@ -6,8 +6,14 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "Gemini API key not configured" }, { status: 500 });
 
-  const prompt = `You are an expert AI project manager. Detect the industry from the card title and respond as a domain expert.\n\nCard: "${title}"\nList: "${listName}"\nBoard: "${boardName}"\n\nReturn ONLY valid JSON, no markdown:\n{\n  "domain": "detected domain",\n  "description": "2 sentences from a 10-year industry veteran",\n  "subtasks": ["subtask 1", "subtask 2", "subtask 3", "subtask 4"],\n  "priority": "low or medium or high or urgent",\n  "estimated_hours": 4,\n  "labels": ["label1", "label2"]\n}`;
+const prompt = `You are a project management expert. Return ONLY a JSON object for this task. No markdown, no explanation, no extra text.
 
+Task: "${title}"
+List: "${listName}"  
+Board: "${boardName}"
+
+JSON format:
+{"domain":"industry name","description":"Two sentences about this task.","subtasks":["step 1","step 2","step 3"],"priority":"medium","estimated_hours":4,"labels":["Label1"]}`;
   try {
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${apiKey}`,
@@ -16,7 +22,7 @@ export async function POST(req: NextRequest) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { temperature: 0.4, maxOutputTokens: 800 },
+          generationConfig: { temperature: 0.4, maxOutputTokens: 1024 },
         }),
       }
     );
